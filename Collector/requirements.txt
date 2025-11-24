@@ -1,10 +1,5 @@
-APScheduler
 fastapi[standard]
-numpy
-openmeteo_requests
-openmeteo_sdk
+httpx
 pika
+apscheduler
 pydantic
-pytz
-requests
-uvicorn
