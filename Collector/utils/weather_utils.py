@@ -1,11 +1,11 @@
 import uuid
-import logging
+from logger import get_logger
 import httpx
 from typing import Dict, Optional
 from datetime import datetime, timezone
 import traceback
 
-logger = logging.getLogger("collector.weather")
+logger = get_logger("collector.weather")
 
 WEATHER_CODE_MAP = {
     0: "céu limpo",

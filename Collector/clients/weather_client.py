@@ -1,4 +1,4 @@
-import logging
+from logger import get_logger
 from typing import Optional
 
 from utils.weather_utils import (
@@ -8,7 +8,7 @@ from utils.weather_utils import (
     WeatherClientError
 )
 
-logger = logging.getLogger("collector.weather_client")
+logger = get_logger("collector.weather_client")
 
 
 class WeatherClient:
