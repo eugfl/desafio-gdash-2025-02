@@ -1,0 +1,10 @@
+APScheduler
+fastapi[standard]
+numpy
+openmeteo_requests
+openmeteo_sdk
+pika
+pydantic
+pytz
+requests
+uvicorn
