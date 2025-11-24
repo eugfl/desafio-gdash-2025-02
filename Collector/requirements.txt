@@ -1,5 +1,5 @@
 fastapi[standard]
 httpx
-pika
+aio-pika
 apscheduler
 pydantic
