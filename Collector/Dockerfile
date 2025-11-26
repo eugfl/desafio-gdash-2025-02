@@ -4,20 +4,21 @@ FROM python:3.12-slim
 # 2. Define diretório de trabalho dentro do container
 WORKDIR /app
 
-# 3. Copiaa arquivos de dependências
+# 3. Instala netcat (necessário para o wait-for-rabbit.sh)
+RUN apt-get update && apt-get install -y netcat-openbsd && apt-get clean
+
+# 4. Copia arquivos de dependências
 COPY requirements.txt .
 
-# 4. Instalaa dependências
+# 5. Instala dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copia todo o código do collector
+# 6. Copia todo o código do collector
 COPY . .
 
-# 6. variáveis de ambiente padrão
-ENV COLLECT_INTERVAL_SECONDS=3600
-ENV RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
-ENV RABBITMQ_EXCHANGE=weather
-ENV RABBITMQ_QUEUE=weather.logs
+# 7. Copia script que espera o RabbitMQ
+COPY wait-for-rabbit.sh /wait-for-rabbit.sh
+RUN chmod +x /wait-for-rabbit.sh
 
-# 7. Comando para rodar a aplicação
-CMD ["python", "-m", "main"]
+# 9. Comando de inicialização
+CMD ["/wait-for-rabbit.sh", "python", "-m", "main"]

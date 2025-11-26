@@ -1,30 +1,17 @@
 import asyncio
-import os
-from logger import get_logger
-from clients.weather_client import WeatherClient
-from clients.rabbitmq_client import RabbitMQPublisher
-
-logger = get_logger("collector.main")
+import uvicorn
+from collector_loop import run_collector_loop
 
 
-async def main():
-    client = WeatherClient()
-    publisher = RabbitMQPublisher(
-        amqp_url=os.getenv("RABBITMQ_URL"),
-        exchange=os.getenv("RABBITMQ_EXCHANGE"),
-        queue=os.getenv("RABBITMQ_QUEUE"),
-    )
+async def start():
+    collector_task = asyncio.create_task(run_collector_loop())
 
-    await publisher.connect()
+    server_config = uvicorn.Config("server:app", host="0.0.0.0", port=8000, reload=False)
+    server = uvicorn.Server(server_config)
+    server_task = asyncio.create_task(server.serve())
 
-    city = input("Digite o nome da cidade para testar: ").strip()
-    payload = await client.fetch_weather_by_city(city)
-
-    if payload:
-        await publisher.publish(payload)
-
-    await publisher.close()
+    await asyncio.gather(collector_task, server_task)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(start())

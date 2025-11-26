@@ -8,12 +8,18 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   collector:
     build:
       context: ./collector
     container_name: collector
-    env_file:
-      - ./collector/.env
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
