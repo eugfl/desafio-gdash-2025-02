@@ -1,9 +1,9 @@
 import asyncio
-from state import state
-from logger import get_logger
-from utils.config import Config
-from clients.weather_client import WeatherClient
-from clients.rabbitmq_client import RabbitMQPublisher
+from Collector.src.domain.state import state
+from Collector.src.core.logger import get_logger
+from Collector.src.core.config import Config
+from Collector.src.clients.weather_client import WeatherClient
+from Collector.src.clients.rabbitmq_client import RabbitMQPublisher
 
 logger = get_logger("collector.scheduler")
 

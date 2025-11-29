@@ -1,6 +1,6 @@
 import asyncio
 import uvicorn
-from collector_loop import run_collector_loop
+from Collector.src.scheduler.collector_loop import run_collector_loop
 
 
 async def start():

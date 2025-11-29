@@ -14,11 +14,14 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 6. Copia todo o código do collector
-COPY . .
+COPY src ./src
 
 # 7. Copia script que espera o RabbitMQ
 COPY wait-for-rabbit.sh /wait-for-rabbit.sh
 RUN chmod +x /wait-for-rabbit.sh
 
-# 9. Comando de inicialização
-CMD ["/wait-for-rabbit.sh", "python", "-m", "main"]
+# 8. Garantir que o Python encontre o /src
+ENV PYTHONPATH="/app/src"
+
+# 9. Start
+CMD ["/wait-for-rabbit.sh", "python", "src/main.py"]

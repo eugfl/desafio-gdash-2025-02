@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from state import state
-from logger import get_logger
+from Collector.src.domain.state import state
+from Collector.src.core.logger import get_logger
 
 logger = get_logger("collector.api")
 app = FastAPI(
