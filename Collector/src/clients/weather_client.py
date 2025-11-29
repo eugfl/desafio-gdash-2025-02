@@ -1,4 +1,4 @@
-from logger import get_logger
+from core.logger import get_logger
 from typing import Optional
 
 from utils.weather_utils import (

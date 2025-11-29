@@ -1,11 +1,24 @@
 import os
+from dataclasses import dataclass
 
 
-class Config:
-    COLLECT_INTERVAL_SECONDS = int(os.getenv("COLLECT_INTERVAL_SECONDS", 3600))
-    RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
-    RABBITMQ_EXCHANGE = os.getenv("RABBITMQ_EXCHANGE", "weather")
-    RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "weather.logs")
+def _get_env(key: str, default: str) -> str:
+    value = os.getenv(key)
+    if value is None:
+        return default
+    return value
 
 
-config = Config()
+@dataclass(frozen=True)
+class AppConfig:
+    """Configuração imutável do serviço Collector."""
+
+    rabbit_url: str = os.getenv("RABBIT_URL") or _get_env(
+        "RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/"
+    )
+    raw_exchange: str = os.getenv("RAW_EXCHANGE") or _get_env("RAW_QUEUE", "weather.raw")
+    raw_queue: str = _get_env("RAW_QUEUE", "weather.raw")
+    collect_interval_seconds: int = int(_get_env("COLLECT_INTERVAL_SECONDS", "3600"))
+
+
+config = AppConfig()

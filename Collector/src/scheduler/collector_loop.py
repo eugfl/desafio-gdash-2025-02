@@ -1,9 +1,9 @@
 import asyncio
-from Collector.src.domain.state import state
-from Collector.src.core.logger import get_logger
-from Collector.src.core.config import Config
-from Collector.src.clients.weather_client import WeatherClient
-from Collector.src.clients.rabbitmq_client import RabbitMQPublisher
+from domain.state import state
+from core.logger import get_logger
+from core.config import config
+from clients.weather_client import WeatherClient
+from clients.rabbitmq_client import RabbitMQPublisher
 
 logger = get_logger("collector.scheduler")
 
@@ -11,13 +11,13 @@ logger = get_logger("collector.scheduler")
 async def run_collector_loop():
     weather = WeatherClient()
     rabbit = RabbitMQPublisher(
-        amqp_url=Config.RABBITMQ_URL,
-        exchange=Config.RABBITMQ_EXCHANGE,
-        queue=Config.RABBITMQ_QUEUE
+        amqp_url=config.rabbit_url,
+        exchange=config.raw_exchange,
+        queue=config.raw_queue,
     )
     await rabbit.connect()
 
-    logger.info(f"🚀 Collector iniciado — intervalo {Config.COLLECT_INTERVAL_SECONDS}s")
+    logger.info(f"🚀 Collector iniciado — intervalo {config.collect_interval_seconds}s")
 
     warned_no_city = False
 
@@ -30,10 +30,9 @@ async def run_collector_loop():
                 warned_no_city = True
             await asyncio.sleep(5)
             continue
-        else:
-            if warned_no_city:
-                logger.info(f"📌 Cidade recebida -> {city}. Coleta iniciada.")
-                warned_no_city = False
+        if warned_no_city:
+            logger.info(f"📌 Cidade recebida -> {city}. Coleta iniciada.")
+            warned_no_city = False
 
         logger.info(f"📡 Coletando clima para: {city}")
         payload = await weather.fetch_weather_by_city(city)
@@ -42,4 +41,4 @@ async def run_collector_loop():
             await rabbit.publish(payload)
             logger.info(f"✔ Payload publicado para RabbitMQ ({city})")
 
-        await asyncio.sleep(Config.COLLECT_INTERVAL_SECONDS)
+        await asyncio.sleep(config.collect_interval_seconds)

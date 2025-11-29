@@ -9,17 +9,34 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   collector:
     build:
-      context: ./collector
+      context: ./Collector
     container_name: collector
+    env_file:
+      - .env
     depends_on:
       rabbitmq:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      - ./Collector/src:/app/src
+
+  ia-service:
+    build:
+      context: ./IA-Service
+    container_name: ia-service
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: always
+    volumes:
+      - ./IA-Service/src:/app/src

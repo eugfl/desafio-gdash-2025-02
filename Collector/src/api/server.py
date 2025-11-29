@@ -1,6 +1,7 @@
-from fastapi import FastAPI
-from Collector.src.domain.state import state
-from Collector.src.core.logger import get_logger
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+from domain.state import state
+from core.logger import get_logger
 
 logger = get_logger("collector.api")
 app = FastAPI(
@@ -23,13 +24,17 @@ app = FastAPI(
 )
 
 
+class CityPayload(BaseModel):
+    city: str = Field(..., min_length=2, description="Cidade alvo da coleta")
+
+
 # ⤵ Rotas da aplicação
 @app.post("/city")
-async def update_city(payload: dict):
-    city = payload.get("city")
+async def update_city(payload: CityPayload):
+    city = payload.city.strip()
 
-    if not city or not isinstance(city, str):
-        return {"error": "Cidade inválida"}
+    if not city:
+        raise HTTPException(status_code=400, detail="Cidade inválida")
 
     await state.set_city(city)
     logger.info(f"🌍 Cidade definida para coleta: {city}")

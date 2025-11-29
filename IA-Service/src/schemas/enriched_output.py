@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
-from weather_payload import WeatherPayload
+from schemas.weather_payload import WeatherPayload
 
 
 class PokemonSuggestion(BaseModel):
@@ -10,6 +10,14 @@ class PokemonSuggestion(BaseModel):
 
 class EnrichedWeatherPayload(BaseModel):
     base: WeatherPayload
-    insights: List[str] = Field(..., description="Resumo inteligente gerado pela IA")
-    suggested_pokemons: List[PokemonSuggestion] = Field(...,
-                                                        description="Pokémons recomendados para este cenário climático")
+    recommended_types: List[str] = Field(
+        default_factory=list,
+        description="Tipos de pokémon sugeridos para o clima atual",
+    )
+    insights: List[str] = Field(
+        default_factory=list, description="Resumo inteligente gerado pela IA"
+    )
+    suggested_pokemons: List[PokemonSuggestion] = Field(
+        default_factory=list,
+        description="Pokémons recomendados para este cenário climático",
+    )

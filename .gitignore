@@ -55,7 +55,6 @@ Desktop.ini
 
 # ---- Envs / config local ----
 .env
-.env.*
 *.env
 *.local
 

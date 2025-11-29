@@ -1,5 +1,5 @@
 import uuid
-from logger import get_logger
+from core.logger import get_logger
 import httpx
 from typing import Dict, Optional
 from datetime import datetime, timezone

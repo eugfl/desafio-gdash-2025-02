@@ -2,7 +2,7 @@ import json
 import aio_pika
 from typing import Dict, Optional
 from aio_pika import Message, DeliveryMode
-from logger import get_logger
+from core.logger import get_logger
 
 logger = get_logger("collector.rabbitmq")
 
