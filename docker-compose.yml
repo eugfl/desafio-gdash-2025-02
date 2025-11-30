@@ -40,3 +40,14 @@ services:
     restart: always
     volumes:
       - ./IA-Service/src:/app/src
+
+  worker-go:
+    build:
+      context: ./Worker-GO
+    container_name: worker-go
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: always
