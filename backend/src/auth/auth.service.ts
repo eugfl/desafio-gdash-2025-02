@@ -45,6 +45,8 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
+    await this.startCollectorForCity(user.city);
+
     return this.generateToken(user);
   }
 
@@ -64,6 +66,9 @@ export class AuthService {
 
     if (user) {
       this.logger.log(`Google login: ${user.email}`);
+
+      await this.startCollectorForCity(user.city);
+
       return this.generateToken(user);
     }
 
@@ -76,7 +81,7 @@ export class AuthService {
 
     return {
       needsCity: true,
-      tempToken: this.jwtService.sign({ googleUser }, { expiresIn: 600 }), // 10 minutos
+      tempToken: this.jwtService.sign({ googleUser }, { expiresIn: 600 }),
       user: {
         name: googleUser.name,
         email: googleUser.email,
@@ -118,7 +123,7 @@ export class AuthService {
           { timeout: 5000 },
         ),
       );
-      this.logger.log(`✅ Coleta iniciada para cidade: ${city}`);
+      this.logger.log(`✅ Coleta iniciada/atualizada para cidade: ${city}`);
     } catch (error) {
       this.logger.warn(
         `⚠️ Falha ao iniciar coleta no Collector: ${error.message}`,

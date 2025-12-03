@@ -42,6 +42,9 @@ export class WeatherLog {
 
   @Prop({ required: true })
   timestamp: Date;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const WeatherLogSchema = SchemaFactory.createForClass(WeatherLog);
