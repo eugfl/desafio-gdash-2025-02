@@ -9,23 +9,60 @@ import {
   HttpStatus,
   ForbiddenException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
+@ApiTags('Users')
+@ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // GET /api/users/me - Ver meu perfil
   @Get('me')
+  @ApiOperation({
+    summary: 'Ver meu perfil',
+    description: 'Retorna dados do perfil do usuário logado',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil do usuário',
+    schema: {
+      example: {
+        _id: '507f1f77bcf86cd799439011',
+        name: 'João Silva',
+        email: 'joao@example.com',
+        city: 'São Paulo',
+        role: 'user',
+        provider: 'local',
+        createdAt: '2025-12-01T10:00:00.000Z',
+        updatedAt: '2025-12-01T10:00:00.000Z',
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
   async getMyProfile(@CurrentUser() user: any) {
     return this.usersService.findById(user.id);
   }
 
-  // PUT /api/users/me - Editar meu perfil
   @Put('me')
+  @ApiOperation({
+    summary: 'Editar meu perfil',
+    description: 'Atualiza nome e/ou cidade do usuário logado',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil atualizado com sucesso',
+  })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
   async updateMyProfile(
     @CurrentUser() user: any,
     @Body() updateUserDto: UpdateUserDto,
@@ -33,9 +70,18 @@ export class UsersController {
     return this.usersService.update(user.id, updateUserDto);
   }
 
-  // PUT /api/users/me/password - Trocar senha
   @Put('me/password')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Trocar senha',
+    description: 'Atualiza senha do usuário logado',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Senha atualizada com sucesso',
+  })
+  @ApiResponse({ status: 400, description: 'Senha atual incorreta' })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
   async updateMyPassword(
     @CurrentUser() user: any,
     @Body() updatePasswordDto: UpdatePasswordDto,
@@ -43,10 +89,28 @@ export class UsersController {
     await this.usersService.updatePassword(user.id, updatePasswordDto);
   }
 
-  // GET /api/users - Listar todos (admin only)
   @Get()
+  @ApiOperation({
+    summary: 'Listar todos os usuários (Admin)',
+    description: 'Retorna lista de todos os usuários cadastrados',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários',
+    schema: {
+      example: [
+        {
+          _id: '507f1f77bcf86cd799439011',
+          name: 'João Silva',
+          email: 'joao@example.com',
+          city: 'São Paulo',
+          role: 'user',
+        },
+      ],
+    },
+  })
+  @ApiResponse({ status: 403, description: 'Acesso negado (requer admin)' })
   async findAll(@CurrentUser() user: any) {
-    // Verificar se é admin
     if (user.role !== 'admin') {
       throw new ForbiddenException(
         'Apenas administradores podem listar usuários',
@@ -55,19 +119,32 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // GET /api/users/:id - Ver perfil de outro usuário (admin only)
   @Get(':id')
+  @ApiParam({ name: 'id', description: 'ID do usuário' })
+  @ApiOperation({
+    summary: 'Ver perfil de usuário específico',
+    description: 'Retorna dados de um usuário (próprio perfil ou admin)',
+  })
+  @ApiResponse({ status: 200, description: 'Dados do usuário' })
+  @ApiResponse({ status: 403, description: 'Sem permissão' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   async findOne(@CurrentUser() user: any, @Param('id') id: string) {
-    // Pode ver próprio perfil ou ser admin
     if (user.id !== id && user.role !== 'admin') {
       throw new ForbiddenException('Sem permissão para ver este perfil');
     }
     return this.usersService.findById(id);
   }
 
-  // DELETE /api/users/:id - Deletar usuário (admin only)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiParam({ name: 'id', description: 'ID do usuário a ser deletado' })
+  @ApiOperation({
+    summary: 'Deletar usuário (Admin)',
+    description: 'Remove usuário do sistema',
+  })
+  @ApiResponse({ status: 204, description: 'Usuário deletado com sucesso' })
+  @ApiResponse({ status: 403, description: 'Acesso negado (requer admin)' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
   async remove(@CurrentUser() user: any, @Param('id') id: string) {
     if (user.role !== 'admin') {
       throw new ForbiddenException(
@@ -75,7 +152,6 @@ export class UsersController {
       );
     }
 
-    // Não pode deletar a si mesmo
     if (user.id === id) {
       throw new ForbiddenException('Você não pode deletar sua própria conta');
     }

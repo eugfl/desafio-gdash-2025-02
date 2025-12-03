@@ -7,6 +7,13 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiBody,
+} from '@nestjs/swagger';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -16,6 +23,7 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { ConfigService } from '@nestjs/config';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -25,12 +33,59 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @ApiOperation({
+    summary: 'Login com email e senha',
+    description: 'Autentica usuário e retorna token JWT',
+  })
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login realizado com sucesso',
+    schema: {
+      example: {
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'João Silva',
+          email: 'joao@example.com',
+          city: 'São Paulo',
+          role: 'user',
+          provider: 'local',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
   @Public()
   @Post('register')
+  @ApiOperation({
+    summary: 'Registrar novo usuário',
+    description:
+      'Cria novo usuário e automaticamente inicia coleta de dados climáticos para a cidade informada',
+  })
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuário criado com sucesso',
+    schema: {
+      example: {
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'João Silva',
+          email: 'joao@example.com',
+          city: 'São Paulo',
+          role: 'user',
+          provider: 'local',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 409, description: 'Email já cadastrado' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
@@ -38,11 +93,29 @@ export class AuthController {
   @Public()
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  async googleAuth() {}
+  @ApiOperation({
+    summary: 'Iniciar login com Google',
+    description: 'Redireciona para página de autenticação do Google',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirecionamento para Google OAuth',
+  })
+  async googleAuth() {
+    // Redireciona para Google
+  }
 
   @Public()
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
+  @ApiOperation({
+    summary: 'Callback do Google OAuth',
+    description: 'Processa retorno da autenticação Google',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirecionamento para frontend com token',
+  })
   async googleAuthCallback(@Req() req: any, @Res() res: Response) {
     const result = await this.authService.googleLogin(req.user);
 
@@ -61,6 +134,23 @@ export class AuthController {
 
   @Public()
   @Post('google/complete')
+  @ApiOperation({
+    summary: 'Completar registro Google',
+    description: 'Finaliza registro de usuário Google informando a cidade',
+  })
+  @ApiBody({
+    schema: {
+      example: {
+        tempToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        city: 'São Paulo',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Registro Google completado com sucesso',
+  })
+  @ApiResponse({ status: 401, description: 'Token temporário inválido' })
   async completeGoogleRegistration(
     @Body() body: { tempToken: string; city: string },
   ) {
@@ -71,11 +161,51 @@ export class AuthController {
   }
 
   @Get('profile')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Obter perfil do usuário logado',
+    description: 'Retorna dados do usuário autenticado',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Perfil do usuário',
+    schema: {
+      example: {
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          email: 'joao@example.com',
+          name: 'João Silva',
+          role: 'user',
+          city: 'São Paulo',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Não autenticado' })
   async getProfile(@CurrentUser() user: any) {
     return { user };
   }
 
   @Get('test')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Testar autenticação',
+    description: 'Endpoint para verificar se token JWT é válido',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token válido',
+    schema: {
+      example: {
+        message: 'Rota protegida funcionando!',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          email: 'joao@example.com',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Token inválido ou ausente' })
   async test(@CurrentUser() user: any) {
     return {
       message: 'Rota protegida funcionando!',
