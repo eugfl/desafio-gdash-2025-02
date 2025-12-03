@@ -1,4 +1,38 @@
 services:
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: weather-dashboard
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+    # MongoDB Web Interface
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - backend
+
+  # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -13,7 +47,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - backend
 
+  # Collector
   collector:
     build:
       context: ./Collector
@@ -27,7 +64,11 @@ services:
       - "8000:8000"
     volumes:
       - ./Collector/src:/app/src
+    networks:
+      - backend
+    restart: unless-stopped
 
+  # IA-Service
   ia-service:
     build:
       context: ./IA-Service
@@ -37,10 +78,13 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    restart: always
     volumes:
       - ./IA-Service/src:/app/src
+    networks:
+      - backend
+    restart: unless-stopped
 
+  # Worker-Go
   worker-go:
     build:
       context: ./Worker-GO
@@ -50,4 +94,54 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-    restart: always
+      nestjs:
+        condition: service_healthy
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # Backend
+  nestjs:
+    build:
+      context: ./backend
+    container_name: nestjs
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/weather-dashboard
+      - COLLECTOR_URL=http://collector:8000
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/auth/test', (r) => {process.exit(r.statusCode === 401 ? 0 : 1)})",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+# Volumes
+volumes:
+  mongodb_data:
+    driver: local
+
+# Networks
+networks:
+  backend:
+    driver: bridge
