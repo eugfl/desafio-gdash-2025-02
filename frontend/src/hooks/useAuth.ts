@@ -1,4 +1,3 @@
-// src/hooks/useAuth.ts
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import authService from "@/services/auth.service";
@@ -9,8 +8,6 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const { user, token, isAuthenticated, setUser, setToken, logout } =
     useAuthStore();
-
-  // REMOVER useEffect com initialize - já roda no ProtectedRoute
 
   const login = async (credentials: LoginCredentials) => {
     try {
@@ -70,6 +67,7 @@ export const useAuth = () => {
     user,
     token,
     isAuthenticated,
+    setUser,
     login,
     register,
     handleGoogleLogin,

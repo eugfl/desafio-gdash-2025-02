@@ -1,4 +1,3 @@
-// src/components/Auth/RegisterForm.tsx
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -110,7 +109,11 @@ export function RegisterForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full cursor-pointer"
+            disabled={isLoading}
+          >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Criar Conta
           </Button>

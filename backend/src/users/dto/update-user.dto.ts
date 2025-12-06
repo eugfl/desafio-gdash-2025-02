@@ -1,20 +1,15 @@
-import { PartialType, OmitType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
-export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, [
-    'email',
-    'password',
-    'provider',
-    'googleId',
-  ] as const),
-) {
+export class UpdateUserDto {
   @ApiProperty({
     example: 'João Pedro Silva',
     description: 'Nome completo do usuário',
     required: false,
   })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
   name?: string;
 
   @ApiProperty({
@@ -22,6 +17,9 @@ export class UpdateUserDto extends PartialType(
     description: 'Cidade do usuário',
     required: false,
   })
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
   city?: string;
 
   @ApiProperty({
@@ -29,5 +27,7 @@ export class UpdateUserDto extends PartialType(
     description: 'URL da foto de perfil',
     required: false,
   })
+  @IsOptional()
+  @IsString()
   picture?: string;
 }

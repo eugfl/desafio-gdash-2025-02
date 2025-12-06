@@ -17,7 +17,7 @@ services:
     networks:
       - backend
 
-    # MongoDB Web Interface
+  # MongoDB Web Interface
   mongo-express:
     image: mongo-express:latest
     container_name: mongo-express
@@ -54,6 +54,7 @@ services:
   collector:
     build:
       context: ./Collector
+      dockerfile: Dockerfile
     container_name: collector
     env_file:
       - .env
@@ -72,6 +73,7 @@ services:
   ia-service:
     build:
       context: ./IA-Service
+      dockerfile: Dockerfile
     container_name: ia-service
     env_file:
       - .env
@@ -88,6 +90,7 @@ services:
   worker-go:
     build:
       context: ./Worker-GO
+      dockerfile: Dockerfile
     container_name: worker-go
     env_file:
       - .env
@@ -104,6 +107,7 @@ services:
   nestjs:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     container_name: nestjs
     env_file:
       - .env
@@ -122,6 +126,7 @@ services:
       - "3000:3000"
     networks:
       - backend
+      - frontend
     healthcheck:
       test:
         [
@@ -136,6 +141,31 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3000/api
+    container_name: frontend
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+      - HOST=0.0.0.0
+    depends_on:
+      nestjs:
+        condition: service_healthy
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    networks:
+      - frontend
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
 # Volumes
 volumes:
   mongodb_data:
@@ -144,4 +174,6 @@ volumes:
 # Networks
 networks:
   backend:
+    driver: bridge
+  frontend:
     driver: bridge

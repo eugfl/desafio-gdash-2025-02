@@ -6,6 +6,9 @@ import {
   OnModuleInit,
   Logger,
 } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -18,7 +21,11 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 export class UsersService implements OnModuleInit {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {}
 
   // Criar usuário padrão na inicialização
   async onModuleInit() {
@@ -51,6 +58,25 @@ export class UsersService implements OnModuleInit {
     this.logger.log(
       `✅ Usuário padrão criado: ${adminEmail} / ${process.env.ADMIN_PASSWORD || '123456'}`,
     );
+  }
+
+  private async startCollectorForCity(city: string): Promise<void> {
+    const collectorUrl = this.configService.get<string>('COLLECTOR_URL');
+
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `${collectorUrl}/city`,
+          { city },
+          { timeout: 5000 },
+        ),
+      );
+      this.logger.log(`✅ Coleta iniciada/atualizada para cidade: ${city}`);
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Falha ao iniciar coleta no Collector: ${error.message}`,
+      );
+    }
   }
 
   // CREATE
@@ -97,17 +123,24 @@ export class UsersService implements OnModuleInit {
   }
 
   // UPDATE
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
+  async update(userId: string, updateUserDto: UpdateUserDto) {
+    const oldUser = await this.findById(userId);
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(userId, updateUserDto, { new: true })
       .select('-password')
       .exec();
 
-    if (!user) {
+    if (!updatedUser) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    return user;
+    // Se a cidade mudou, disparar coleta
+    if (updateUserDto.city && oldUser.city !== updateUserDto.city) {
+      this.startCollectorForCity(updateUserDto.city);
+    }
+
+    return updatedUser;
   }
 
   // UPDATE - Trocar senha

@@ -1,4 +1,3 @@
-// src/components/Layout/ProtectedRoute.tsx
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
@@ -11,10 +10,9 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, initialize } = useAuthStore();
 
-  // Inicializar store apenas uma vez
   useEffect(() => {
     initialize();
-  }, []); // Array vazio = roda apenas no mount
+  }, []);
 
   if (isLoading) {
     return (

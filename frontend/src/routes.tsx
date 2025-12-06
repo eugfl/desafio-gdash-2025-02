@@ -7,6 +7,7 @@ import Login from "@/pages/Login";
 import AuthCallback from "@/pages/AuthCallback";
 import CompleteRegistration from "@/pages/CompleteRegistration";
 import Dashboard from "@/pages/Dashboard";
+import Users from "@/pages/Users";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/users",
+    element: (
+      <ProtectedRoute>
+        <Users />
       </ProtectedRoute>
     ),
   },

@@ -23,7 +23,26 @@ api.interceptors.request.use(
 
 // Interceptor para tratar erros de autenticação
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Transformar _id para id se existir
+    if (response.data && response.data._id) {
+      response.data.id = response.data._id;
+      delete response.data._id;
+    }
+
+    // Se for um array, transformar cada item
+    if (Array.isArray(response.data)) {
+      response.data = response.data.map((item) => {
+        if (item._id) {
+          item.id = item._id;
+          delete item._id;
+        }
+        return item;
+      });
+    }
+
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       // Token inválido ou expirado

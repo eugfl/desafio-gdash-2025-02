@@ -1,4 +1,3 @@
-// src/components/Auth/GoogleButton.tsx
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -9,7 +8,7 @@ export function GoogleButton() {
     <Button
       type="button"
       variant="outline"
-      className="w-full"
+      className="w-full cursor-pointer"
       onClick={handleGoogleLogin}
     >
       <svg

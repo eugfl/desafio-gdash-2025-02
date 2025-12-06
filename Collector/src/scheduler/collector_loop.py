@@ -8,6 +8,15 @@ from clients.rabbitmq_client import RabbitMQPublisher
 logger = get_logger("collector.scheduler")
 
 
+async def collect_once(weather: WeatherClient, rabbit: RabbitMQPublisher, city: str):
+    logger.info(f"📡 Coletando clima para: {city}")
+    payload = await weather.fetch_weather_by_city(city)
+
+    if payload:
+        await rabbit.publish(payload)
+        logger.info(f"✔ Payload publicado para RabbitMQ ({city})")
+
+
 async def run_collector_loop():
     weather = WeatherClient()
     rabbit = RabbitMQPublisher(
@@ -28,17 +37,20 @@ async def run_collector_loop():
             if not warned_no_city:
                 logger.warning("⚠ Nenhuma cidade definida. Aguardando POST /city...")
                 warned_no_city = True
-            await asyncio.sleep(5)
+            
+            await state.wait_for_city_change()
             continue
         if warned_no_city:
             logger.info(f"📌 Cidade recebida -> {city}. Coleta iniciada.")
             warned_no_city = False
 
-        logger.info(f"📡 Coletando clima para: {city}")
-        payload = await weather.fetch_weather_by_city(city)
+        await collect_once(weather, rabbit, city)
 
-        if payload:
-            await rabbit.publish(payload)
-            logger.info(f"✔ Payload publicado para RabbitMQ ({city})")
-
-        await asyncio.sleep(config.collect_interval_seconds)
+        try:
+            await asyncio.wait_for(
+                state.wait_for_city_change(),
+                timeout=config.collect_interval_seconds
+            )
+            logger.info("🔄 Cidade alterada! Coletando dados da nova cidade imediatamente...")
+        except asyncio.TimeoutError:
+            pass

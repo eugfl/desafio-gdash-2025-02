@@ -38,8 +38,12 @@ export default function Login() {
         {/* Tabs de Login/Registro */}
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Registrar</TabsTrigger>
+            <TabsTrigger className="cursor-pointer" value="login">
+              Login
+            </TabsTrigger>
+            <TabsTrigger className="cursor-pointer" value="register">
+              Registrar
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
@@ -60,6 +64,13 @@ export default function Login() {
               <div className="mt-6">
                 <GoogleButton />
               </div>
+            </div>
+            <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+              <p>
+                <a href="#" className="text-primary hover:underline">
+                  Esqueci minha senha
+                </a>
+              </p>
             </div>
           </TabsContent>
 
@@ -84,20 +95,6 @@ export default function Login() {
             </div>
           </TabsContent>
         </Tabs>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>
-            Ao continuar, você concorda com nossos{" "}
-            <a href="#" className="text-primary hover:underline">
-              Termos de Serviço
-            </a>{" "}
-            e{" "}
-            <a href="#" className="text-primary hover:underline">
-              Política de Privacidade
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );

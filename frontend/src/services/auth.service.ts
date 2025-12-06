@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import api from "./api";
 import type {
   LoginCredentials,
@@ -34,13 +33,13 @@ class AuthService {
 
   async getProfile(): Promise<User> {
     const response = await api.get<{ user: User }>("/auth/profile");
-    return response.data.user; // CORRIGIDO
+    return response.data.user;
   }
 
   // Google OAuth
   redirectToGoogleLogin() {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    window.location.href = `${baseUrl}/auth/google`; // CORRIGIDO
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+    window.location.href = `${baseUrl}/auth/google`;
   }
 }
 
