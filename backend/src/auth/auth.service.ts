@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   Logger,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HttpService } from '@nestjs/axios';
@@ -11,6 +12,9 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { MailerService } from '@nestjs-modules/mailer';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private httpService: HttpService,
     private configService: ConfigService,
+    private mailerService: MailerService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -149,5 +154,44 @@ export class AuthService {
         provider: user.provider,
       },
     };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+    try {
+      const { token, user } = await this.usersService.setResetPasswordToken(
+        forgotPasswordDto.email,
+      );
+
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+      const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: '🔐 Recuperação de Senha - GDash',
+        template: 'reset-password',
+        context: {
+          name: user.name,
+          resetUrl,
+        },
+      });
+
+      this.logger.log(`✉️ Email de recuperação enviado para: ${user.email}`);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        this.logger.warn(
+          `Tentativa de reset para email inexistente: ${forgotPasswordDto.email}`,
+        );
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
+    await this.usersService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+    this.logger.log('✅ Senha resetada com sucesso');
   }
 }

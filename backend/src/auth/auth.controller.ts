@@ -6,6 +6,8 @@ import {
   UseGuards,
   Req,
   Res,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +24,8 @@ import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -210,6 +214,58 @@ export class AuthController {
     return {
       message: 'Rota protegida funcionando!',
       user,
+    };
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Solicitar recuperação de senha',
+    description: 'Envia email com link para redefinir senha',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email enviado (se o email existir)',
+    schema: {
+      example: {
+        message:
+          'Se o email existir, você receberá instruções para resetar a senha',
+      },
+    },
+  })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto);
+    return {
+      message:
+        'Se o email existir, você receberá instruções para resetar a senha',
+    };
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Redefinir senha',
+    description: 'Cria nova senha usando token do email',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Senha resetada com sucesso',
+    schema: {
+      example: {
+        message: 'Senha redefinida com sucesso! Você já pode fazer login',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Token inválido ou expirado',
+  })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(resetPasswordDto);
+    return {
+      message: 'Senha redefinida com sucesso! Você já pode fazer login',
     };
   }
 }

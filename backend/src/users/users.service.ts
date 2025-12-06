@@ -188,4 +188,51 @@ export class UsersService implements OnModuleInit {
     if (!user.password) return false;
     return bcrypt.compare(password, user.password);
   }
+
+  async setResetPasswordToken(
+    email: string,
+  ): Promise<{ token: string; user: User }> {
+    const user = await this.userModel.findOne({ email }).exec();
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Verificar se é usuário OAuth
+    if (user.provider !== 'local' || !user.password) {
+      throw new BadRequestException('Usuários OAuth não podem resetar senha');
+    }
+
+    // Gerar token aleatório de 32 caracteres
+    const token = require('crypto').randomBytes(32).toString('hex');
+
+    // Expirar em 1 hora
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hora
+
+    await user.save();
+
+    return { token, user };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await this.userModel
+      .findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }, // Token ainda válido
+      })
+      .exec();
+
+    if (!user) {
+      throw new BadRequestException('Token inválido ou expirado');
+    }
+
+    // Atualizar senha
+    user.password = await bcrypt.hash(newPassword, 10);
+
+    // Limpar token de reset
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+  }
 }

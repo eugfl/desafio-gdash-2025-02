@@ -11,7 +11,7 @@ import { WeatherModule } from './weather/weather.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig],
-      envFilePath: '.env',
+      envFilePath: ['../.env'],
     }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],

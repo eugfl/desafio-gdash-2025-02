@@ -6,7 +6,7 @@ WORKDIR /app
 # Copiar package files
 COPY package*.json ./
 
-# Instalar dependências
+# Instalar todas as dependências (dev + prod)
 RUN npm ci
 
 # Copiar código fonte
@@ -14,6 +14,9 @@ COPY . .
 
 # Build da aplicação
 RUN npm run build
+
+# Copiar templates para o dist para que o NestJS/Mailer consiga encontrá-los
+RUN mkdir -p dist/templates && cp -r src/templates/* dist/templates/
 
 # 2. Production Stage
 FROM node:18-alpine
@@ -31,10 +34,6 @@ COPY --from=builder /app/dist ./dist
 
 # Expor porta
 EXPOSE 3000
-
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/api/auth/test', (r) => {process.exit(r.statusCode === 401 ? 0 : 1)})" || exit 1
 
 # Start
 CMD ["node", "dist/main"]
