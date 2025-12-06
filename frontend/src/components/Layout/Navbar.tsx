@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Cloud, LogOut, User, RefreshCw, Users } from "lucide-react";
+import { Cloud, LogOut, User, RefreshCw, Users, Sun, Moon } from "lucide-react";
 import { ProfileDialog } from "@/components/Profile/ProfileDialog";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +23,25 @@ export function Navbar({ onRefresh }: NavbarProps) {
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = sessionStorage.getItem("darkmode");
+    const isDark = stored === "true";
+    if (isDark) document.documentElement.classList.add("dark");
+    return isDark;
+  });
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    if (newMode) {
+      document.documentElement.classList.add("dark");
+      sessionStorage.setItem("darkmode", "true");
+    } else {
+      document.documentElement.classList.remove("dark");
+      sessionStorage.setItem("darkmode", "false");
+    }
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -34,11 +53,11 @@ export function Navbar({ onRefresh }: NavbarProps) {
 
   return (
     <>
-      <nav className="border-b bg-background">
+      <nav className="border-b bg-background transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="">
+            <div>
               <a className="flex items-center gap-2" href="/dashboard">
                 <Cloud className="h-8 w-8 text-primary" />
                 <div>
@@ -49,9 +68,23 @@ export function Navbar({ onRefresh }: NavbarProps) {
                 </div>
               </a>
             </div>
-
             {/* Actions */}
             <div className="flex items-center gap-3">
+              {/* Dark Mode Toggle */}
+              <Button
+                className="cursor-pointer"
+                variant="outline"
+                size="icon"
+                onClick={toggleDarkMode}
+                title="Alternar tema"
+              >
+                {darkMode ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )}
+              </Button>
+
               {/* Refresh Button */}
               {onRefresh && (
                 <Button
@@ -100,7 +133,6 @@ export function Navbar({ onRefresh }: NavbarProps) {
                     <span>Meu Perfil</span>
                   </DropdownMenuItem>
 
-                  {/* Admin: Gerenciar Usuários */}
                   {user?.role === "admin" && (
                     <>
                       <DropdownMenuSeparator />
@@ -128,8 +160,6 @@ export function Navbar({ onRefresh }: NavbarProps) {
           </div>
         </div>
       </nav>
-
-      {/* Profile Dialog */}
       <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </>
   );
