@@ -29,3 +29,11 @@ export interface CompleteGoogleRegistration {
   tempToken: string;
   city: string;
 }
+export interface ForgotPassword {
+  email: string;
+}
+
+export interface ResetPassword {
+  token: string;
+  newPassword: string;
+}

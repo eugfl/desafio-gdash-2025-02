@@ -63,6 +63,38 @@ export const useAuth = () => {
     navigate("/login");
   };
 
+  const handleForgotPassword = async (email: string) => {
+    try {
+      const response = await authService.forgotPassword(email);
+      toast("Email enviado!", {
+        description: `Verifique sua caixa de entrada para redefinir a senha.`,
+      });
+      return response;
+    } catch (error: any) {
+      toast("Erro ao enviar email", {
+        description:
+          error.response?.data?.message || "Não foi possível enviar o email",
+      });
+      throw error;
+    }
+  };
+
+  const handleResetPassword = async (token: string, newPassword: string) => {
+    try {
+      await authService.resetPassword(token, newPassword);
+      toast("Senha redefinida!", {
+        description: "Você pode fazer login com a nova senha.",
+      });
+      navigate("/login");
+    } catch (error: any) {
+      toast("Erro ao redefinir senha", {
+        description:
+          error.response?.data?.message || "Não foi possível redefinir a senha",
+      });
+      throw error;
+    }
+  };
+
   return {
     user,
     token,
@@ -72,5 +104,7 @@ export const useAuth = () => {
     register,
     handleGoogleLogin,
     handleLogout,
+    handleForgotPassword,
+    handleResetPassword,
   };
 };

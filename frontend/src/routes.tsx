@@ -8,11 +8,16 @@ import AuthCallback from "@/pages/AuthCallback";
 import CompleteRegistration from "@/pages/CompleteRegistration";
 import Dashboard from "@/pages/Dashboard";
 import Users from "@/pages/Users";
+import ResetPasswordPage from "./pages/ResetPassword";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />,
   },
   {
     path: "/auth/callback",

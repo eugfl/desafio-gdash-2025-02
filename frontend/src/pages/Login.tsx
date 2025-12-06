@@ -67,7 +67,10 @@ export default function Login() {
             </div>
             <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
               <p>
-                <a href="#" className="text-primary hover:underline">
+                <a
+                  href="/reset-password"
+                  className="text-primary hover:underline"
+                >
                   Esqueci minha senha
                 </a>
               </p>

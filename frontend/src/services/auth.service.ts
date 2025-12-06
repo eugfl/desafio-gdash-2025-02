@@ -5,6 +5,8 @@ import type {
   AuthResponse,
   CompleteGoogleRegistration,
   User,
+  ForgotPassword,
+  ResetPassword,
 } from "@/types/auth.types";
 
 class AuthService {
@@ -40,6 +42,24 @@ class AuthService {
   redirectToGoogleLogin() {
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
     window.location.href = `${baseUrl}/auth/google`;
+  }
+
+  async forgotPassword(email: string): Promise<ForgotPassword> {
+    const response = await api.post<ForgotPassword>("/auth/forgot-password", {
+      email,
+    });
+    return response.data;
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<ResetPassword> {
+    const response = await api.post<ResetPassword>("/auth/reset-password", {
+      token,
+      newPassword,
+    });
+    return response.data;
   }
 }
 
