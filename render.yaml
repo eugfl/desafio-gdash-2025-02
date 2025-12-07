@@ -1,0 +1,87 @@
+services:
+  # ----------------------------------------------------
+  # 1. API (NestJS)
+  # ----------------------------------------------------
+  - type: web
+    name: weather-api
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: Dockerfile
+    plan: free
+    healthCheckPath: /api/auth/test
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false     # Set this manually to your MongoDB Atlas URI
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: weather-frontend
+          property: url
+      - key: RABBIT_URL
+        sync: false # Set manually (e.g. CloudAMQP)
+      - key: JWT_SECRET
+        generateValue: true
+
+  # ----------------------------------------------------
+  # 2. Frontend (React/Vite)
+  # ----------------------------------------------------
+  - type: web
+    name: weather-frontend
+    env: node
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run preview -- --port $PORT --host
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: weather-api
+          property: url
+
+  # ----------------------------------------------------
+  # 3. Collector (Python)
+  # ----------------------------------------------------
+  - type: worker
+    name: weather-collector
+    env: docker
+    dockerContext: ./Collector
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: RABBIT_URL
+        sync: false # Set manually
+
+  # ----------------------------------------------------
+  # 4. IA Service (Python)
+  # ----------------------------------------------------
+  - type: worker
+    name: weather-ia-service
+    env: docker
+    dockerContext: ./IA-Service
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: RABBIT_URL
+        sync: false # Set manually
+      - key: GROQ_API_KEY
+        sync: false
+
+  # ----------------------------------------------------
+  # 5. Worker GO
+  # ----------------------------------------------------
+  - type: worker
+    name: weather-worker-go
+    env: docker
+    dockerContext: ./Worker-GO
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: RABBIT_URL
+        sync: false # Set manually
+      - key: NESTJS_URL
+        fromService:
+          type: web
+          name: weather-api
+          property: url
