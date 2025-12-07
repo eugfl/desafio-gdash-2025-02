@@ -44,7 +44,9 @@ services:
       - key: MAIL_PASSWORD
         sync: false
       - key: MAIL_FROM
-        value: noreply@weather-dashboard.com
+        value: eugffl@gmail.com
+      - key: RESET_TOKEN_EXPIRES
+        value: 3600
 
   # ----------------------------------------------------
   # 2. Frontend (React/Vite)
