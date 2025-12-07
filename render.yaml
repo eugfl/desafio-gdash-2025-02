@@ -52,7 +52,7 @@ services:
   # ----------------------------------------------------
   # 3. Collector (Python)
   # ----------------------------------------------------
-  - type: worker
+  - type: web
     name: weather-collector
     env: docker
     dockerContext: ./Collector
@@ -65,7 +65,7 @@ services:
   # ----------------------------------------------------
   # 4. IA Service (Python)
   # ----------------------------------------------------
-  - type: worker
+  - type: web
     name: weather-ia-service
     env: docker
     dockerContext: ./IA-Service
@@ -80,7 +80,7 @@ services:
   # ----------------------------------------------------
   # 5. Worker GO
   # ----------------------------------------------------
-  - type: worker
+  - type: web
     name: weather-worker-go
     env: docker
     dockerContext: ./Worker-GO
