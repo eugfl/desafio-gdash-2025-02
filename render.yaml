@@ -9,7 +9,7 @@ services:
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     plan: free
-    healthCheckPath: /api/auth/test
+    healthCheckPath: /api/health
     envVars:
       - key: PORT
         value: 3000
