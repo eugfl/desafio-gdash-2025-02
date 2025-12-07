@@ -16,10 +16,7 @@ services:
       - key: MONGODB_URI
         sync: false     # Set this manually to your MongoDB Atlas URI
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: weather-frontend
-          property: host
+        value: https://weather-frontend-p7am.onrender.com
       - key: RABBIT_URL
         sync: false # Set manually (e.g. CloudAMQP)
       - key: JWT_SECRET
@@ -50,10 +47,7 @@ services:
     startCommand: cd frontend && node server.js
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: weather-api
-          property: host
+        value: https://weather-api-p6v8.onrender.com/api
 
   # ----------------------------------------------------
   # 3. Collector (Python)
