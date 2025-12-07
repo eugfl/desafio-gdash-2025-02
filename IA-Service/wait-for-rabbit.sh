@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ -n "$RABBIT_URL" ]; then
+    echo "⚡ [IA-Service] RABBIT_URL detectada. Assumindo broker externo. Pulando wait..."
+    exec python -m src.main
+    exit 0
+fi
+
 RABBIT_HOST=${RABBIT_HOST:-"rabbitmq"}
 RABBIT_PORT=${RABBIT_PORT:-5672}
 MAX_RETRIES=${MAX_RETRIES:-30}

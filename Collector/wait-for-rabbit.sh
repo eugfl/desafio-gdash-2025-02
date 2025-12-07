@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ -n "$RABBIT_URL" ]; then
+    echo "⚡ [Collector] RABBIT_URL detectada. Assumindo broker externo. Pulando wait..."
+    exec python src/main.py
+    exit 0
+fi
+
 RABBIT_HOST=${RABBIT_HOST:-"rabbitmq"}
 RABBIT_PORT=${RABBIT_PORT:-5672}
 MAX_RETRIES=${MAX_RETRIES:-30}
@@ -10,7 +16,7 @@ echo "🔄 Aguardando RabbitMQ (${RABBIT_HOST}:${RABBIT_PORT}) iniciar..."
 for i in $(seq 1 $MAX_RETRIES); do
     if nc -z "$RABBIT_HOST" "$RABBIT_PORT"; then
         echo "✅ RabbitMQ está pronto! (Tentativa $i)"
-        exec python -m main
+        exec python src/main.py
         exit 0
     fi
 
