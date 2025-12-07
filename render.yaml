@@ -32,6 +32,12 @@ services:
         value: São Paulo
       - key: COLLECTOR_URL
         value: http://weather-collector:8000
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
 
   # ----------------------------------------------------
   # 2. Frontend (React/Vite)
