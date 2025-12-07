@@ -49,6 +49,5 @@ export class WeatherLog {
 
 export const WeatherLogSchema = SchemaFactory.createForClass(WeatherLog);
 
-WeatherLogSchema.index({ external_id: 1 });
 WeatherLogSchema.index({ 'location.city': 1, timestamp: -1 });
 WeatherLogSchema.index({ timestamp: -1 });
